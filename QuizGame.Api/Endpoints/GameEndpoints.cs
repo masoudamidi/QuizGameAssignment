@@ -42,34 +42,12 @@ public static class GameEndpoints
             catch (InvalidOperationException ex) { return Results.BadRequest(new { error = ex.Message }); }
         });
  
-        // group.MapGet("/history", async (ClaimsPrincipal user, GameService svc, CancellationToken ct) =>
-        // {
-        //     var history = await svc.GetHistoryAsync(user.GetUserId(), ct);
-        //     return Results.Ok(history);
-        // });
-        //
-        // group.MapGet("/history/export", async (ClaimsPrincipal user, GameService svc, CancellationToken ct) =>
-        // {
-        //     var history = await svc.GetHistoryAsync(user.GetUserId(), ct);
-        //     var csv = ToCsv(history);
-        //     return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv", "game-history.csv");
-        // });
-        //
-        // app.MapGet("/leaderboard", async (GameService svc, CancellationToken ct) =>
-        // {
-        //     var board = await svc.GetLeaderboardAsync(ct);
-        //     return Results.Ok(board);
-        // }).WithTags("Game");
+        group.MapGet("/history", async (ClaimsPrincipal user, GameService svc, CancellationToken ct) =>
+        {
+            var history = await svc.GetHistoryAsync(user.GetUserId(), ct);
+            return Results.Ok(history);
+        });
     }
- 
-    // private static string ToCsv(IReadOnlyList<Application.DTOs.GameHistoryItem> items)
-    // {
-    //     var sb = new System.Text.StringBuilder();
-    //     sb.AppendLine("SessionId,StartedAt,EndedAt,FinalScore,Status,QuestionsAnswered");
-    //     foreach (var i in items)
-    //         sb.AppendLine($"{i.SessionId},{i.StartedAt:O},{i.EndedAt:O},{i.FinalScore},{i.Status},{i.QuestionsAnswered}");
-    //     return sb.ToString();
-    // }
 }
  
 public static class ClaimsPrincipalExtensions
