@@ -7,7 +7,7 @@ namespace QuizGame.Application.Auth.Services;
 
 public class AuthService(IUserRepository users, ITokenService tokens) : IAuthService
 {
-    private readonly PasswordHasher<User> _hasher = new();
+    private readonly PasswordHasher<object?> _hasher = new();
  
     public async Task<AuthResponse> RegisterAsync(RegisterRequest req, CancellationToken ct = default)
     {
@@ -15,14 +15,13 @@ public class AuthService(IUserRepository users, ITokenService tokens) : IAuthSer
         if (existing != null)
             throw new InvalidOperationException("Email already registered.");
  
-        var user = User.Create(req.Username, req.Email, "placeholder");
-        var hash = _hasher.HashPassword(user, req.Password);
-        user = User.Create(req.Username, req.Email, hash);
+        var hash = _hasher.HashPassword(null, req.Password);
+        var user = User.Create(req.Username, req.Email, hash);
  
         await users.AddAsync(user, ct);
         await users.SaveAsync(ct);
  
-        return new AuthResponse(tokens.GenerateToken(user), user.Email);
+        return new AuthResponse(tokens.GenerateToken(user), user.Username);
     }
  
     public async Task<AuthResponse> LoginAsync(LoginRequest req, CancellationToken ct = default)
@@ -34,6 +33,6 @@ public class AuthService(IUserRepository users, ITokenService tokens) : IAuthSer
         if (result == PasswordVerificationResult.Failed)
             throw new UnauthorizedAccessException("Invalid credentials.");
  
-        return new AuthResponse(tokens.GenerateToken(user), user.Email);
+        return new AuthResponse(tokens.GenerateToken(user), user.Username);
     }
 }
