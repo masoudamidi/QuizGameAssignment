@@ -26,10 +26,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         m.Entity<GameSession>(e =>
         {
             e.HasKey(s => s.Id);
-            e.Property(s => s.Score)
-                .HasConversion(new ValueConverter<Score, int>(v => v.Value, v => Score.From(v)));
-            e.Property(s => s.Status)
-                .HasConversion<string>();
+            e.Property(s => s.Score);
+            e.Property(s => s.Status).HasConversion<string>();
             e.HasMany(s => s.Attempts).WithOne().HasForeignKey(a => a.GameSessionId);
         });
  
@@ -37,6 +35,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         m.Entity<Attempt>(e =>
         {
             e.HasKey(a => a.Id);
+            e.Property(a => a.Id).ValueGeneratedOnAdd();
             e.Property(a => a.ChosenAnswer).HasMaxLength(512);
         });
     }

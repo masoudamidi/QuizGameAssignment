@@ -6,7 +6,7 @@ public class GameSession
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
-    public Score Score { get; private set; } = Score.Zero;
+    public int Score { get; private set; } 
     public GameStatus Status { get; private set; }
     public DateTime StartedAt { get; private set; }
     public DateTime ExpiresAt { get; private set; }
@@ -23,10 +23,10 @@ public class GameSession
         {
             Id = Guid.NewGuid(),
             UserId = userId,
-            Score = Score.Zero,
+            Score = 0,
             Status = GameStatus.InProgress,
             StartedAt = now,
-            ExpiresAt = now.AddSeconds(durationSeconds)
+            ExpiresAt = now.AddSeconds(durationSeconds),
         };
     }
 
@@ -43,11 +43,11 @@ public class GameSession
         }
  
         var isCorrect = string.Equals(chosenAnswer, correctAnswer, StringComparison.OrdinalIgnoreCase);
-        var delta = isCorrect ? Score.CorrectPoints : Score.IncorrectPoints;
+        var delta = isCorrect ? ScoreConstants.CorrectPoints : ScoreConstants.WrongPoints;
  
-        Score = Score.Apply(delta);
+        Score += delta;
  
-        Attempts.Add(Attempt.Create(Id, questionId, chosenAnswer, isCorrect, delta, Score.Value));
+        Attempts.Add(Attempt.Create(Id, questionId, chosenAnswer, isCorrect, delta, Score));
         return (isCorrect, delta);
     }
  
@@ -55,6 +55,6 @@ public class GameSession
     {
         if (Status != GameStatus.InProgress) return;
         EndedAt = DateTime.UtcNow;
-        Status = Score.Value >= 0 ? GameStatus.Won : GameStatus.Lost;
+        Status = Score >= 0 ? GameStatus.Won : GameStatus.Lost;
     }
 }

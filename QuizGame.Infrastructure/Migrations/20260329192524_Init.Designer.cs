@@ -12,7 +12,7 @@ using QuizGame.Infrastructure.Persistence;
 namespace QuizGame.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260329164748_Init")]
+    [Migration("20260329192524_Init")]
     partial class Init
     {
         /// <inheritdoc />

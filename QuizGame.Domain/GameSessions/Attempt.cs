@@ -16,7 +16,6 @@ public class Attempt
     public static Attempt Create(Guid sessionId, Guid questionId, string chosen, bool correct, int delta, int running) =>
         new()
         {
-            Id = Guid.NewGuid(),
             GameSessionId = sessionId,
             QuestionId = questionId,
             ChosenAnswer = chosen,

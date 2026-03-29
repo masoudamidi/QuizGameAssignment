@@ -22,7 +22,7 @@ public class GameSessionTests
         Assert.NotEqual(Guid.Empty, session.Id);
         Assert.Equal(userId, session.UserId);
         Assert.Equal(GameStatus.InProgress, session.Status);
-        Assert.Equal(Score.Zero.Value, session.Score.Value);
+        Assert.Equal(0, session.Score);
 
         Assert.True(session.StartedAt >= before);
         Assert.True(session.StartedAt <= after);
@@ -44,8 +44,8 @@ public class GameSessionTests
 
         // Assert
         Assert.True(isCorrect);
-        Assert.Equal(Score.CorrectPoints, delta);
-        Assert.Equal(Score.CorrectPoints, session.Score.Value);
+        Assert.Equal(ScoreConstants.CorrectPoints, delta);
+        Assert.Equal(ScoreConstants.CorrectPoints, session.Score);
         Assert.Single(session.Attempts);
     }
     
@@ -61,8 +61,8 @@ public class GameSessionTests
 
         // Assert
         Assert.False(isCorrect);
-        Assert.Equal(Score.IncorrectPoints, delta);
-        Assert.Equal(Score.IncorrectPoints, session.Score.Value);
+        Assert.Equal(ScoreConstants.WrongPoints, delta);
+        Assert.Equal(ScoreConstants.WrongPoints, session.Score);
     }
     
     [Fact]
