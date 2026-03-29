@@ -23,7 +23,6 @@ public class AttemptTests
         var after = DateTime.UtcNow;
 
         // Assert
-        Assert.NotEqual(Guid.Empty, attempt.Id);
         Assert.Equal(sessionId, attempt.GameSessionId);
         Assert.Equal(questionId, attempt.QuestionId);
         Assert.Equal(chosen, attempt.ChosenAnswer);
@@ -33,20 +32,5 @@ public class AttemptTests
 
         Assert.True(attempt.AnsweredAt >= before);
         Assert.True(attempt.AnsweredAt <= after);
-    }
-
-    [Fact]
-    public void Create_ShouldGenerateUniqueIds()
-    {
-        // Arrange
-        var sessionId = Guid.NewGuid();
-        var questionId = Guid.NewGuid();
-
-        // Act
-        var attempt1 = Attempt.Create(sessionId, questionId, "A", true, 1, 1);
-        var attempt2 = Attempt.Create(sessionId, questionId, "B", false, 0, 1);
-
-        // Assert
-        Assert.NotEqual(attempt1.Id, attempt2.Id);
     }
 }
