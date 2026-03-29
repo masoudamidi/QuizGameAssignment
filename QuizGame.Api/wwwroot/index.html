@@ -199,7 +199,7 @@
 
   function renderQuestion(q) {
     document.getElementById('question-text').textContent = q.text
-    document.getElementById('provider-badge').textContent = PROVIDERS[q.provider] || q.provider
+    document.getElementById('provider-badge').textContent = PROVIDERS[q.providerId] || q.providerId
     document.getElementById('feedback').innerHTML = ''
     const choicesEl = document.getElementById('choices')
     choicesEl.innerHTML = ''
@@ -222,7 +222,7 @@
 
     try {
       const data = await api(`/games/${sessionId}/answer`, 'POST', { chosenAnswer: chosen })
-      updateScore(data.score)
+      updateScore(data.totalScore)
 
       // Highlight the chosen button
       document.querySelectorAll('.btn-choice').forEach(b => {
@@ -231,15 +231,15 @@
 
       const fb = document.getElementById('feedback')
       fb.className = 'feedback ' + (data.correct ? 'ok' : 'bad')
-      fb.textContent = data.correct ? `✓ Correct! +${data.delta}` : `✗ Wrong. ${data.delta}`
+      fb.textContent = data.correct ? `✓ Correct! +${data.scoreDelta}` : `✗ Wrong. ${data.scoreDelta}`
 
       await pause(1100)
 
       if (data.gameOver) {
         clearInterval(timerInt)
-        endGame(data.result)
+        endGame(data.gameResult)
       } else {
-        renderQuestion(data.question)
+        renderQuestion(data.nextQuestion)
       }
     } catch (e) {
       console.error(e)
@@ -272,10 +272,10 @@
             <div class="history-row">
               <div>
                 <div>${i.status === 'Won' ? '🏆' : '💀'} ${new Date(i.startedAt).toLocaleString()}</div>
-                <div class="history-meta">${i.questions} questions</div>
+                <div class="history-meta">${i.questionsAnswered} questions</div>
               </div>
-              <div class="score-val ${i.score >= 0 ? 'positive' : 'negative'}" style="font-size:1.2rem">
-                ${i.score >= 0 ? '+' : ''}${i.score}
+              <div class="score-val ${i.finalScore >= 0 ? 'positive' : 'negative'}" style="font-size:1.2rem">
+                ${i.finalScore >= 0 ? '+' : ''}${i.finalScore}
               </div>
             </div>`).join('')
       show('history')
