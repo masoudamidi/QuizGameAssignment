@@ -1,8 +1,22 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizGame.Domain", "QuizGame.Domain\QuizGame.Domain.csproj", "{0BC6863D-1310-4F1E-AD97-790979629257}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuizGame.Tests", "QuizGame.Tests\QuizGame.Tests.csproj", "{0C69F8CA-E267-41D3-9659-09B2665E6DE3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0BC6863D-1310-4F1E-AD97-790979629257}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BC6863D-1310-4F1E-AD97-790979629257}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BC6863D-1310-4F1E-AD97-790979629257}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BC6863D-1310-4F1E-AD97-790979629257}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C69F8CA-E267-41D3-9659-09B2665E6DE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C69F8CA-E267-41D3-9659-09B2665E6DE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C69F8CA-E267-41D3-9659-09B2665E6DE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C69F8CA-E267-41D3-9659-09B2665E6DE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
