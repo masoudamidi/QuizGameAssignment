@@ -51,13 +51,11 @@ dotnet test
 
 ```
 QuizGame/
-├── src/
-│   ├── QuizGame.Domain/          # Entities, value objects, domain services
-│   ├── QuizGame.Application/     # Use cases, interfaces, DTOs
-│   ├── QuizGame.Infrastructure/  # EF Core, GBFS clients, JWT, background sync
-│   └── QuizGame.Api/             # Minimal API endpoints, static frontend
-└── tests/
-    └── QuizGame.Tests/           # Domain unit tests
+└── QuizGame.Domain/          # Entities, value objects, domain services
+└── QuizGame.Application/     # Use cases, interfaces, DTOs
+└── QuizGame.Infrastructure/  # EF Core, GBFS clients, JWT, background sync
+└── QuizGame.Api/             # Minimal API endpoints, static frontend
+└── QuizGame.Tests/           # Domain unit tests
 ```
 
 ---
@@ -106,7 +104,9 @@ QuizGame.Api  →  QuizGame.Application  →  QuizGame.Domain
 | Citi Bike | New York 🇺🇸 | `gbfs.citibikenyc.com/gbfs/2.3` |
 | Cyclocity | Paris 🇫🇷 | `api.cyclocity.fr/contracts/paris` |
 
-Provider URLs are in `appsettings.json` under `Gbfs`. Adding a fourth provider is one class and two config lines.
+Provider URLs are in each provider now in infrastructure. Adding a fourth provider is one class. 
+
+As improvement these providers can live in database and fetched when needed.
 
 ---
 
@@ -125,9 +125,3 @@ The 60-second timer is enforced server-side via `GameSession.ExpiresAt`. The cli
 
 ---
 
-## What I would change with more time
-
-- **Distributed session queue** — the in-memory `Dictionary<Guid, Queue<Question>>` works for a single instance but breaks under load balancing or restarts. Moving it to Redis with a short TTL would make it production-safe.
-- **Integration tests** — domain logic is unit tested. The HTTP layer and database interaction are not. `WebApplicationFactory` + Testcontainers for PostgreSQL would cover the full stack without external dependencies.
-- **Rate limiting** — the answer endpoint has no throttle. A determined client could submit answers faster than humanly possible. ASP.NET Core's built-in rate limiting middleware would handle this in a few lines.
-- **Typed result instead of exceptions** — Application services currently throw exceptions for control flow (e.g. `UnauthorizedAccessException`, `KeyNotFoundException`). A `Result<T>` type would make error handling explicit and remove the try/catch blocks from endpoints.
