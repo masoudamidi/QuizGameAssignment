@@ -89,7 +89,4 @@ app.UseStaticFiles();
 app.MapAuthEndpoints();
 app.MapGameEndpoints();
 
-app.MapGet("/debug/claims", (ClaimsPrincipal user) =>
-    Results.Ok(user.Claims.Select(c => new { c.Type, c.Value })));
-
 app.Run();
