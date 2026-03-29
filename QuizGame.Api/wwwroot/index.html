@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GBFS Quiz</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0f1117; color: #e5e7eb; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+    h1   { font-size: 2rem; font-weight: 800; }
+    p    { color: #9ca3af; }
+
+    .screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; gap: 16px; padding: 24px; width: 100%; max-width: 540px; }
+    .screen.active { display: flex; }
+
+    .card { background: #1a1d27; border: 1px solid #2a2d3a; border-radius: 14px; padding: 32px 28px; width: 100%; }
+
+    input  { width: 100%; padding: 12px 14px; background: #0f1117; border: 1px solid #2a2d3a; border-radius: 8px; color: #fff; font-size: 14px; margin-bottom: 10px; }
+    button { width: 100%; padding: 13px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+    .btn-primary   { background: #3b82f6; color: #fff; }
+    .btn-secondary { background: transparent; border: 1px solid #2a2d3a; color: #9ca3af; }
+    .btn-choice    { background: #1e2130; border: 1px solid #2a2d3a; color: #e5e7eb; text-align: left; padding: 13px 16px; margin-bottom: 8px; border-radius: 8px; transition: background 0.1s; }
+    .btn-choice:hover:not(:disabled) { background: #2a2d3a; }
+    .btn-choice.correct { background: #14532d; border-color: #166534; }
+    .btn-choice.wrong   { background: #450a0a; border-color: #7f1d1d; }
+
+    .tabs    { display: flex; background: #0f1117; border-radius: 8px; padding: 4px; margin-bottom: 20px; }
+    .tab     { flex: 1; padding: 8px; border: none; background: transparent; color: #6b7280; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+    .tab.active { background: #2a2d3a; color: #fff; }
+
+    .hud     { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
+    .timer   { font-size: 2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .timer.urgent { color: #ef4444; }
+    .score-box { text-align: center; }
+    .score-val { font-size: 1.5rem; font-weight: 700; }
+    .score-val.positive { color: #22c55e; }
+    .score-val.negative { color: #ef4444; }
+    .provider-badge { background: #1e2130; border: 1px solid #2a2d3a; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #9ca3af; }
+
+    .question-text { font-size: 1.1rem; font-weight: 600; line-height: 1.5; margin-bottom: 20px; }
+    .feedback      { border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-weight: 600; font-size: 14px; }
+    .feedback.ok   { background: #14532d; }
+    .feedback.bad  { background: #450a0a; }
+
+    .history-list  { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+    .history-row   { display: flex; justify-content: space-between; align-items: center; background: #1e2130; border-radius: 8px; padding: 12px 16px; }
+    .history-meta  { font-size: 12px; color: #6b7280; }
+    .error { color: #ef4444; font-size: 13px; margin-top: 4px; }
+    .link  { background: none; border: none; color: #3b82f6; cursor: pointer; text-decoration: underline; font-size: 14px; width: auto; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<!-- Auth screen -->
+<div id="screen-auth" class="screen active">
+  <div style="text-align:center">
+    <div style="font-size:3rem">🚲</div>
+    <h1 style="margin:8px 0 4px">GBFS Quiz</h1>
+    <p>Guess bike-sharing facts from Oslo, NYC &amp; Paris</p>
+  </div>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('login')">Sign in</button>
+      <button class="tab"        onclick="setTab('register')">Sign up</button>
+    </div>
+    <div id="field-username" style="display:none">
+      <input id="inp-username" placeholder="Username" />
+    </div>
+    <input id="inp-email"    type="email"    placeholder="Email" />
+    <input id="inp-password" type="password" placeholder="Password" />
+    <p id="auth-error" class="error"></p>
+    <button class="btn-primary" onclick="submitAuth()">Continue</button>
+  </div>
+</div>
+
+<!-- Home / idle screen -->
+<div id="screen-home" class="screen">
+  <div style="text-align:center">
+    <div style="font-size:3rem">🚲</div>
+    <h1 id="home-greeting" style="margin:8px 0 4px">Hello!</h1>
+    <p>60 seconds · +50 correct · −20 wrong · stay positive to win</p>
+  </div>
+  <button class="btn-primary" style="max-width:200px" onclick="startGame()">Start game</button>
+  <button class="link" onclick="showHistory()">View history</button>
+  <button class="link" onclick="logout()">Sign out</button>
+</div>
+
+<!-- Playing screen -->
+<div id="screen-game" class="screen">
+  <div class="hud">
+    <div id="timer" class="timer">1:00</div>
+    <div class="score-box">
+      <div style="font-size:11px;color:#6b7280">SCORE</div>
+      <div id="score-val" class="score-val positive">0</div>
+    </div>
+    <div id="provider-badge" class="provider-badge">—</div>
+  </div>
+  <div class="card">
+    <p id="question-text" class="question-text"></p>
+    <div id="feedback"></div>
+    <div id="choices"></div>
+  </div>
+</div>
+
+<!-- Result screen -->
+<div id="screen-result" class="screen">
+  <div id="result-emoji" style="font-size:4rem"></div>
+  <h1 id="result-title"></h1>
+  <p  id="result-sub"></p>
+  <button class="btn-primary" style="max-width:200px;margin-top:16px" onclick="startGame()">Play again</button>
+  <button class="link" onclick="showHistory()">View history</button>
+</div>
+
+<!-- History screen -->
+<div id="screen-history" class="screen">
+  <h1>Game history</h1>
+  <div id="history-list" class="history-list"></div>
+  <button class="btn-primary" style="max-width:200px;margin-top:16px" onclick="show('home')">Play</button>
+</div>
+
+<script>
+  let token      = localStorage.getItem('token') || ''
+  let username   = localStorage.getItem('username') || ''
+  let sessionId  = null
+  let expiresAt  = null
+  let score      = 0
+  let timerInt   = null
+  let authMode   = 'login'
+  let answered   = false
+
+  const PROVIDERS = { oslo: '🇳🇴 Oslo', nyc: '🇺🇸 New York', paris: '🇫🇷 Paris' }
+  
+  function show(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+    document.getElementById('screen-' + name).classList.add('active')
+  }
+  
+  function setTab(mode) {
+    authMode = mode
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (i === 0) === (mode === 'login')))
+    document.getElementById('field-username').style.display = mode === 'register' ? 'block' : 'none'
+  }
+
+  async function submitAuth() {
+    const email    = document.getElementById('inp-email').value.trim()
+    const password = document.getElementById('inp-password').value
+    const errEl    = document.getElementById('auth-error')
+    errEl.textContent = ''
+
+    try {
+      let body = { email, password }
+      if (authMode === 'register') body.username = document.getElementById('inp-username').value.trim()
+      const data = await api(authMode === 'login' ? '/auth/login' : '/auth/register', 'POST', body)
+      token    = data.token
+      username = data.username
+      localStorage.setItem('token', token)
+      localStorage.setItem('username', username)
+      document.getElementById('home-greeting').textContent = `Hello, ${username}!`
+      show('home')
+    } catch (e) {
+      errEl.textContent = e.message
+    }
+  }
+
+  function logout() {
+    token = ''; username = ''
+    localStorage.clear()
+    show('auth')
+  }
+  
+  async function startGame() {
+    try {
+      const data = await api('/games', 'POST')
+      sessionId = data.sessionId
+      expiresAt = new Date(data.expiresAt)
+      score     = 0
+      answered  = false
+      updateScore(0)
+      startTimer()
+      renderQuestion(data.question)
+      show('game')
+    } catch (e) {
+      alert(e.message)
+    }
+  }
+
+  function startTimer() {
+    clearInterval(timerInt)
+    timerInt = setInterval(() => {
+      const left = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000))
+      const m    = Math.floor(left / 60)
+      const s    = left % 60
+      const el   = document.getElementById('timer')
+      el.textContent = `${m}:${String(s).padStart(2, '0')}`
+      el.classList.toggle('urgent', left <= 10)
+      if (left === 0) { clearInterval(timerInt); endGame('TimeUp') }
+    }, 500)
+  }
+
+  function renderQuestion(q) {
+    document.getElementById('question-text').textContent = q.text
+    document.getElementById('provider-badge').textContent = PROVIDERS[q.provider] || q.provider
+    document.getElementById('feedback').innerHTML = ''
+    const choicesEl = document.getElementById('choices')
+    choicesEl.innerHTML = ''
+    answered = false
+    q.choices.forEach(choice => {
+      const btn = document.createElement('button')
+      btn.className = 'btn-choice'
+      btn.textContent = choice
+      btn.onclick = () => submitAnswer(q.questionId, choice, q.choices)
+      choicesEl.appendChild(btn)
+    })
+  }
+
+  async function submitAnswer(questionId, chosen, allChoices) {
+    if (answered) return
+    answered = true
+
+    // Disable all buttons
+    document.querySelectorAll('.btn-choice').forEach(b => b.disabled = true)
+
+    try {
+      const data = await api(`/games/${sessionId}/answer`, 'POST', { chosenAnswer: chosen })
+      updateScore(data.score)
+
+      // Highlight the chosen button
+      document.querySelectorAll('.btn-choice').forEach(b => {
+        if (b.textContent === chosen) b.classList.add(data.correct ? 'correct' : 'wrong')
+      })
+
+      const fb = document.getElementById('feedback')
+      fb.className = 'feedback ' + (data.correct ? 'ok' : 'bad')
+      fb.textContent = data.correct ? `✓ Correct! +${data.delta}` : `✗ Wrong. ${data.delta}`
+
+      await pause(1100)
+
+      if (data.gameOver) {
+        clearInterval(timerInt)
+        endGame(data.result)
+      } else {
+        renderQuestion(data.question)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  function updateScore(val) {
+    score = val
+    const el = document.getElementById('score-val')
+    el.textContent = (val >= 0 ? '+' : '') + val
+    el.className = 'score-val ' + (val >= 0 ? 'positive' : 'negative')
+  }
+
+  function endGame(result) {
+    clearInterval(timerInt)
+    const won = result === 'Won'
+    document.getElementById('result-emoji').textContent = won ? '🏆' : '💀'
+    document.getElementById('result-title').textContent = won ? 'You won!' : result === 'TimeUp' ? "Time's up!" : 'Game over'
+    document.getElementById('result-sub').textContent   = `Final score: ${score >= 0 ? '+' : ''}${score}`
+    show('result')
+  }
+  
+  async function showHistory() {
+    try {
+      const items = await api('/games/history', 'GET')
+      const list  = document.getElementById('history-list')
+      list.innerHTML = items.length === 0
+        ? '<p style="text-align:center;color:#6b7280">No games yet.</p>'
+        : items.map(i => `
+            <div class="history-row">
+              <div>
+                <div>${i.status === 'Won' ? '🏆' : '💀'} ${new Date(i.startedAt).toLocaleString()}</div>
+                <div class="history-meta">${i.questions} questions</div>
+              </div>
+              <div class="score-val ${i.score >= 0 ? 'positive' : 'negative'}" style="font-size:1.2rem">
+                ${i.score >= 0 ? '+' : ''}${i.score}
+              </div>
+            </div>`).join('')
+      show('history')
+    } catch (e) {
+      alert(e.message)
+    }
+  }
+  
+  async function api(path, method, body) {
+    const headers = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : undefined })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || res.statusText)
+    }
+    return res.json()
+  }
+
+  function pause(ms) { return new Promise(r => setTimeout(r, ms)) }
+  
+  if (token) {
+    document.getElementById('home-greeting').textContent = `Hello, ${username}!`
+    show('home')
+  }
+</script>
+</body>
+</html>
