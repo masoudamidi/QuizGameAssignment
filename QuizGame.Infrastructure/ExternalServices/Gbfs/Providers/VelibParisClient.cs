@@ -1,8 +1,8 @@
 namespace QuizGame.Infrastructure.ExternalServices.Gbfs.Providers;
 
 public class VelibParisClient(HttpClient http)
-    : GbfsClient(http, "https://velib-metropole-opendata.smovengo.fr/opendata/Velib_Metropole/gbfs.json")
+    : GbfsClient(http, "https://data.lime.bike/api/partners/v2/gbfs/paris/gbfs.json")
 {
-    public override string ProviderId => "velib-paris";
+    public override string ProviderId => "paris";
     protected override string City => "Paris";
 }
